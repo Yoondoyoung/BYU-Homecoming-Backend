@@ -18,6 +18,6 @@
   ],
   "env": {
     "NODE_ENV": "production",
-    "FRONTEND_URLS": "http://localhost:3000,https://frontend-*.vercel.app,https://frontend-yoondoyoungs-projects.vercel.app"
+    "FRONTEND_URLS": "http://localhost:3000,https://frontend-*.vercel.app,https://frontend-yoondoyoungs-projects.vercel.app,https://frontend-qze7536g2-yoondoyoungs-projects.vercel.app"
   }
 }
