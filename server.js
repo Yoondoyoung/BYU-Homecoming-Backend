@@ -11,12 +11,63 @@ require('dotenv').config({
 
 const app = express();
 const server = http.createServer(app);
+
+const parseOrigins = (value = '') =>
+  value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const createMatcher = (pattern) => {
+  if (pattern === '*') {
+    return () => true;
+  }
+
+  if (pattern.includes('*')) {
+    const regex = new RegExp(`^${escapeRegex(pattern).replace(/\\\*/g, '.*')}$`);
+    return (origin) => regex.test(origin);
+  }
+
+  return (origin) => origin === pattern;
+};
+
+const defaultOrigins = ['http://localhost:3000'];
+const envOrigins = parseOrigins(process.env.FRONTEND_URLS || process.env.FRONTEND_URL);
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
+const originMatchers = allowedOrigins.length
+  ? allowedOrigins.map(createMatcher)
+  : defaultOrigins.map(createMatcher);
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  return originMatchers.some((matches) => matches(origin));
+};
+
+const handleCorsOrigin = (origin, callback) => {
+  if (isOriginAllowed(origin)) {
+    return callback(null, true);
+  }
+  const message = `Origin not allowed by CORS: ${origin}`;
+  return callback(new Error(message));
+};
+
+const corsOptions = {
+  origin: handleCorsOrigin,
+  credentials: true
+};
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: handleCorsOrigin,
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  transports: ['polling', 'websocket'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 // Track online sockets per user for direct chat notifications
@@ -81,10 +132,8 @@ const UserMatchingService = require('./services/UserMatchingService');
 const ConversationTopicService = require('./services/ConversationTopicService');
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint
