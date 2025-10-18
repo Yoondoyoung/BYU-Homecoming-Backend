@@ -36,12 +36,28 @@ const createMatcher = (pattern) => {
 const defaultOrigins = ['http://localhost:3000'];
 const envOrigins = parseOrigins(process.env.FRONTEND_URLS || process.env.FRONTEND_URL);
 const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
+
+// Railway 배포를 위한 추가 CORS 설정
+console.log('🌐 Allowed origins:', allowedOrigins);
+console.log('🔧 Environment:', process.env.NODE_ENV);
+console.log('🚀 Port:', process.env.PORT);
 const originMatchers = allowedOrigins.length
   ? allowedOrigins.map(createMatcher)
   : defaultOrigins.map(createMatcher);
 
 const isOriginAllowed = (origin) => {
   if (!origin) return true;
+  
+  // Railway 배포를 위한 임시 CORS 설정 (개발용)
+  if (process.env.NODE_ENV === 'production') {
+    // Vercel 도메인 허용
+    if (origin.includes('vercel.app')) return true;
+    // Railway 도메인 허용
+    if (origin.includes('railway.app')) return true;
+    // localhost 허용
+    if (origin.includes('localhost')) return true;
+  }
+  
   return originMatchers.some((matches) => matches(origin));
 };
 
