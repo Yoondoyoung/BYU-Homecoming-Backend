@@ -154,10 +154,14 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  console.log('🏥 Health check requested');
   res.json({
     status: 'OK',
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    port: process.env.PORT || 4001
   });
 });
 
@@ -843,4 +847,12 @@ server.listen(PORT, () => {
   console.log(`Health check available at: http://localhost:${PORT}/api/health`);
   console.log(`Auth endpoints available at: http://localhost:${PORT}/api/auth`);
   console.log(`💬 Chat server ready for connections`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🔧 Allowed origins: ${process.env.FRONTEND_URLS || 'default'}`);
 });
+
+// Railway 배포를 위한 추가 로그
+console.log('📦 Starting BYU Homecoming Backend...');
+console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
+console.log('🚀 PORT:', process.env.PORT);
+console.log('🌐 FRONTEND_URLS:', process.env.FRONTEND_URLS);
