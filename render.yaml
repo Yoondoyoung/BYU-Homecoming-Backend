@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: byu-homecoming-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: FRONTEND_URLS
+        value: http://localhost:3000,https://frontend-*.vercel.app,https://frontend-yoondoyoungs-projects.vercel.app,https://frontend-zeta-two-96.vercel.app
